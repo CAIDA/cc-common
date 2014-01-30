@@ -5,7 +5,7 @@
  * corsaro-info@caida.org
  *
  * bytes_htons, bytes_htonl, gettimeofday_wrap, malloc_zero from scamper
- *   http://www.wand.net.nz/scamper
+ *   http://www.caida.org/tools/measurement/scamper/
  *
  * timeval_subtract code from
  *   http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
