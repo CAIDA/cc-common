@@ -32,12 +32,6 @@ noinst_LTLIBRARIES = libcorsarocommon.la
 
 CONDITIONAL_LIBS=
 
-if WITH_LIBANON
-SUBDIRS += libanon
-CONDITIONAL_LIBS += $(top_builddir)/common/libanon/libanon.la
-AM_CPPFLAGS += -I$(top_srcdir)/common/libanon
-endif
-
 libcorsarocommon_la_SOURCES = \
 	utils.c \
 	utils.h \
