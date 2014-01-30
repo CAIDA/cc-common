@@ -9,11 +9,12 @@ drive the build process.
 
 All code has been written by Alistair King <alistair@caida.org> and is released
 under the terms of the GPL (see the COPYING file of the including project),
-*except*:
+**except**:
 
  - libpatricia
-   - Adapted from the Net::Patricia perl module by Dave Plonka, see
-     [copyright notice](libpatrica/copyright).
+   - Adapted from the
+     [Net::Patricia](http://search.cpan.org/~plonka/Net-Patricia-1.014/Patricia.am)
+     perl module by Dave Plonka, see [copyright notice](libpatricia/copyright).
 
  - libcsv
    - Adapted from [libcsv](http://libcsv.sourceforge.net)
@@ -25,7 +26,7 @@ under the terms of the GPL (see the COPYING file of the including project),
    - Developed by [WAND](http://www.wand.net.nz) and used with permission.
 
  - utils.c
-   - _timeval_subtract_ code from
+   - *timeval_subtract* code from
      http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
-   - _bytes_htons_, _bytes_htonl_, _gettimeofday_wrap_, _malloc_zero_ from
+   - *bytes_htons*, *bytes_htonl*, *gettimeofday_wrap*, *malloc_zero* from
      [scamper](http://www.caida.org/tools/measurement/scamper/)
