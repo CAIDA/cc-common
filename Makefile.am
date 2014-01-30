@@ -28,11 +28,11 @@ AM_CPPFLAGS = -I$(top_srcdir) \
 	-I$(top_srcdir)/common/libpatricia \
 	-I$(top_srcdir)/common/libcsv
 
-noinst_LTLIBRARIES = libcorsarocommon.la
+noinst_LTLIBRARIES = libcccommon.la
 
 CONDITIONAL_LIBS=
 
-libcorsarocommon_la_SOURCES = \
+libcccommon_la_SOURCES = \
 	utils.c \
 	utils.h \
 	ip_utils.c \
@@ -42,7 +42,7 @@ libcorsarocommon_la_SOURCES = \
 	khash.h \
 	ksort.h
 
-libcorsarocommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
+libcccommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
 			$(top_builddir)/common/libcsv/libcsv.la \
 			$(CONDITIONAL_LIBS)
 
