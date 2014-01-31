@@ -30,3 +30,29 @@ under the terms of the GPL (see the COPYING file of the including project),
      http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
    - *bytes_htons*, *bytes_htonl*, *gettimeofday_wrap*, *malloc_zero* from
      [scamper](http://www.caida.org/tools/measurement/scamper/)
+
+Usage Notes
+-----------
+
+cc-common is designed to be included in projects as a git submodule.
+
+To use cc-common, loosely do the following:
+
+1. Add cc-common as a git submodule
+  - `git submodule add git://github.com/alistairking/cc-common.git common`
+  - See http://git-scm.com/book/en/Git-Tools-Submodules for more info about
+    working with git submodules.
+1. Update the *AC_CONFIG_FILES* macro in *configure.ac* to include:
+`common/Makefile`, `common/libpatricia/Makefile`, and `common/libcsv/Makefile`
+1. In the main *Makefile.am* file for your library (usually */lib/Makefile.am*),
+add `$(top_builddir)/common/libcccommon.la` to the LIBADD variable.
+	 - e.g. `libsomething_la_LIBADD = $(top_builddir)/common/libcccommon.la`
+1. To include header files directly, you may need to add the following to the
+*AM_CPPFLAGS* variable in the appropriate *Makefile.am*.
+~~~
+-I$(top_srcdir)/common/ \
+-I$(top_srcdir)/common/libpatricia \
+-I$(top_srcdir)/common/libcsv
+~~~
+1. Run *autoreconf* and *configure* and you should be all set.
+
