@@ -45,14 +45,14 @@ To use cc-common, loosely do the following:
 1. Update the *AC_CONFIG_FILES* macro in *configure.ac* to include:
 `common/Makefile`, `common/libpatricia/Makefile`, and
 `common/libcsv/Makefile`. For example:
-    ~~~
-    AC_CONFIG_FILES([Makefile lib/Makefile
-	    		  tools/Makefile
-		    	  common/Makefile
-    			  common/libpatricia/Makefile
-	    		  common/libcsv/Makefile
-		    	  ])
-    ~~~
+       ~~~
+       AC_CONFIG_FILES([Makefile lib/Makefile
+	         		  tools/Makefile
+		        	  common/Makefile
+    		    	  common/libpatricia/Makefile
+	    	    	  common/libcsv/Makefile
+		        	  ])
+       ~~~
 1. In the main *Makefile.am* file for your library (usually */lib/Makefile.am*),
 add `$(top_builddir)/common/libcccommon.la` to the LIBADD variable.
 	 - e.g. `libsomething_la_LIBADD = $(top_builddir)/common/libcccommon.la`
