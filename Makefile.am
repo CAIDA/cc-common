@@ -40,7 +40,9 @@ libcccommon_la_SOURCES = \
 	parse_cmd.c \
 	parse_cmd.h \
 	khash.h \
-	ksort.h
+	ksort.h \
+	wandio_utils.c \
+	wandio_utils.h
 
 libcccommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
 			$(top_builddir)/common/libcsv/libcsv.la \
