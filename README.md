@@ -42,27 +42,27 @@ To use cc-common, loosely do the following:
   - `git submodule add git://github.com/alistairking/cc-common.git common`
   - See http://git-scm.com/book/en/Git-Tools-Submodules for more info about
     working with git submodules.
-1. Update the *AC_CONFIG_FILES* macro in *configure.ac* to include:
+2. Update the *AC_CONFIG_FILES* macro in *configure.ac* to include:
 `common/Makefile`, `common/libpatricia/Makefile`, and
 `common/libcsv/Makefile`. For example:
-       ~~~
+
        AC_CONFIG_FILES([Makefile lib/Makefile
-	         		  tools/Makefile
-		        	  common/Makefile
-    		    	  common/libpatricia/Makefile
-	    	    	  common/libcsv/Makefile
-		        	  ])
-       ~~~
-1. In the main *Makefile.am* file for your library (usually */lib/Makefile.am*),
+                        tools/Makefile
+                        common/Makefile
+                        common/libpatricia/Makefile
+                        common/libcsv/Makefile
+                       ])
+
+3. In the main *Makefile.am* file for your library (usually */lib/Makefile.am*),
 add `$(top_builddir)/common/libcccommon.la` to the LIBADD variable.
 	 - e.g. `libsomething_la_LIBADD = $(top_builddir)/common/libcccommon.la`
-1. To include header files directly, you may need to add to the *AM_CPPFLAGS*
+4. To include header files directly, you may need to add to the *AM_CPPFLAGS*
 variable in the appropriate *Makefile.am*. For example:
-~~~
-AM_CPPFLAGS = -I$(top_srcdir) \
-	-I$(top_srcdir)/common/ \
-	-I$(top_srcdir)/common/libpatricia \
-	-I$(top_srcdir)/common/libcsv
-~~~
-1. Run *autoreconf* and *configure* and you should be all set.
+
+       AM_CPPFLAGS = -I$(top_srcdir) \
+                     -I$(top_srcdir)/common/ \
+                     -I$(top_srcdir)/common/libpatricia \
+                     -I$(top_srcdir)/common/libcsv
+
+5. Run *autoreconf* and *configure* and you should be all set.
 
