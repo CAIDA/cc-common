@@ -54,8 +54,10 @@ To use cc-common, loosely do the following:
                         ])
 
 3. In the main *Makefile.am* file for your library (usually */lib/Makefile.am*),
-add `$(top_builddir)/common/libcccommon.la` to the LIBADD variable.
-	 - e.g. `libsomething_la_LIBADD = $(top_builddir)/common/libcccommon.la`
+add `$(top_builddir)/common/libcccommon.la` to the LIBADD variable. For example:
+
+        libsomething_la_LIBADD = $(top_builddir)/common/libcccommon.la
+
 4. To include header files directly, you may need to add to the *AM_CPPFLAGS*
 variable in the appropriate *Makefile.am*. For example:
 
