@@ -40,6 +40,7 @@ libcccommon_la_SOURCES = \
 	parse_cmd.c \
 	parse_cmd.h \
 	khash.h \
+	klist.h \
 	ksort.h \
 	wandio_utils.c \
 	wandio_utils.h
