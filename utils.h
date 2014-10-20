@@ -60,11 +60,15 @@
 /* ntholl and htonll macros from 
    http://www.codeproject.com/KB/cpp/endianness.aspx */
 /** Byte-swap a 64-bit integer */
+#ifndef ntohll
 #define ntohll(x) (((uint64_t)(ntohl((int)((x << 32) >> 32))) << 32) |	\
 		   (uint32_t)ntohl(((int)(x >> 32))))
+#endif
 
 /** Byte-swap a 64-bit integer */
+#ifndef htonll
 #define htonll(x) ntohll(x)
+#endif
 
 /** Convert a host ordered short to a network ordered byte array 
  *
