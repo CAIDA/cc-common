@@ -22,6 +22,7 @@
  * along with cc-common.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include "config.h" /* we need _GNU_SOURCE to be defined */
 
 #include <assert.h>
 #include <stdarg.h>
