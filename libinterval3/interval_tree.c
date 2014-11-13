@@ -34,6 +34,8 @@ void _destInfo(void *info)
   ((interval_tree_node_info_t*)info)->interval->start=0;
   ((interval_tree_node_info_t*)info)->interval->end=0;
   ((interval_tree_node_info_t*)info)->interval->data=NULL;
+
+  free(((interval_tree_node_info_t*)info)->interval);
   ((interval_tree_node_info_t*)info)->interval=NULL;
 
   ((interval_tree_node_info_t*)info)->max=0;
@@ -57,17 +59,21 @@ void _printInfo(void *info)
 void _rotationCallback(rb_red_blk_node *rot_node)
 {
   // Update max of the affected nodes during tree rotation
-  uint32_t max = ((interval_tree_node_info_t*)rot_node->info)->interval->end;
+  uint32_t max = ((interval_tree_node_info_t*)(rot_node->info))->interval->end;
 
-  (rot_node->left->info != NULL)
-      && (max < ((interval_tree_node_info_t*)rot_node->left->info)->max) 
-      && (max = ((interval_tree_node_info_t*)rot_node->left->info)->max);
+  if ((rot_node->left->info != NULL)
+      && (max < ((interval_tree_node_info_t*)(rot_node->left->info))->max))
+    { 
+      max = ((interval_tree_node_info_t*)(rot_node->left->info))->max;
+    }
 
-  (rot_node->right->info != NULL)
-      && (max < ((interval_tree_node_info_t*)rot_node->right->info)->max) 
-      && (max = ((interval_tree_node_info_t*)rot_node->right->info)->max);   
+  if ((rot_node->right->info != NULL)
+      && (max < ((interval_tree_node_info_t*)(rot_node->right->info))->max))
+    {
+      max = ((interval_tree_node_info_t*)(rot_node->right->info))->max;
+    }
 
-  ((interval_tree_node_info_t*)rot_node->info)->max = max;
+  ((interval_tree_node_info_t*)(rot_node->info))->max = max;
 }
 
 
