@@ -1,3 +1,6 @@
+Mon Nov 17, 2014: [Vasco Asturiano, vasco@caida.org] Correct initialization of info 
+				  field in nil and root nodes.
+
 Fri Nov 07, 2014: [Vasco Asturiano, vasco@caida.org] Added a callback function
 				  argument (RotationCallback(node)) to tree initialization which gets triggered
 				  on tree rotations for each of the nodes affected by the rotation.
