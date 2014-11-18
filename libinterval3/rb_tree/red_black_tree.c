@@ -45,10 +45,12 @@ rb_red_blk_tree* RBTreeCreate( int (*CompFunc) (const void*,const void*),
   temp->parent=temp->left=temp->right=temp;
   temp->red=0;
   temp->key=0;
+  temp->info=NULL;
   temp=newTree->root= (rb_red_blk_node*) SafeMalloc(sizeof(rb_red_blk_node));
   temp->parent=temp->left=temp->right=newTree->nil;
   temp->key=0;
   temp->red=0;
+  temp->info=NULL;
   return(newTree);
 }
 
