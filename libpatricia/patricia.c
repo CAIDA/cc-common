@@ -63,6 +63,14 @@ comp_with_mask (void *addr, void *dest, u_int mask)
     return (0);
 }
 
+
+
+/* following function redefine inet_pton and causes
+ * problems when executing IPv6, we assume that any
+ * machine that is running this code will have
+ * inet_pton
+ */
+#if 0
 /* inet_pton substitute implementation
  * Uses inet_addr to convert an IP address in dotted decimal notation into
  * unsigned long and copies the result to dst.
@@ -99,6 +107,7 @@ inet_pton (int af, const char *src, void *dst)
     }
 #endif /* NT */
 }
+#endif
 
 /* this allows imcomplete prefix */
 int
