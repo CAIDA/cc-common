@@ -1,8 +1,17 @@
 #include "stack.h"
 
+#if 0
+/* 2015-01-26 AK removes the StackNotEmpty function because it does a shady
+   pointer-to-int cast which could be bad on a 64bit machine. It seems it is
+   unused. If you are reading this and decide you need to use it, then please
+   consider changing to something like:
+
+   return theStack && theStack->top ? 1 : 0;
+*/
 int StackNotEmpty(stk_stack * theStack) {
   return( theStack ? (int) theStack->top : 0);
 }
+#endif
 
 stk_stack * StackJoin(stk_stack * stack1, stk_stack * stack2) {
   if (!stack1->tail) {
