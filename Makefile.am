@@ -33,6 +33,12 @@ noinst_LTLIBRARIES = libcccommon.la
 
 CONDITIONAL_LIBS=
 
+if WITHOUT_WANDIO
+WANDIO_SRCS=
+else
+WANDIO_SRCS=wandio_utils.c wandio_utils.h
+endif
+
 libcccommon_la_SOURCES = \
 	utils.c \
 	utils.h \
@@ -43,8 +49,7 @@ libcccommon_la_SOURCES = \
 	khash.h \
 	klist.h \
 	ksort.h \
-	wandio_utils.c \
-	wandio_utils.h
+	$(WANDIO_SRCS)
 
 libcccommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
 			$(top_builddir)/common/libinterval3/libinterval3.la \
