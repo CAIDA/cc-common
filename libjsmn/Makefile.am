@@ -22,42 +22,12 @@
 # along with cc-common.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-SUBDIRS = libpatricia libinterval3 libcsv libjsmn
+AM_CPPFLAGS =
 
-AM_CPPFLAGS = -I$(top_srcdir) \
-	-I$(top_srcdir)/common/libpatricia \
-	-I$(top_srcdir)/common/libpinterval3 \
-	-I$(top_srcdir)/common/libcsv
-	-I$(top_srcdir)/common/libjsmn
+noinst_LTLIBRARIES = libjsmn.la
 
-noinst_LTLIBRARIES = libcccommon.la
-
-CONDITIONAL_LIBS=
-
-# users of cc-common MUST have defined WITH_WANDIO
-if WITH_WANDIO
-WANDIO_SRCS=wandio_utils.c wandio_utils.h
-else
-WANDIO_SRCS=
-endif
-
-libcccommon_la_SOURCES = \
-	utils.c \
-	utils.h \
-	ip_utils.c \
-	ip_utils.h \
-	parse_cmd.c \
-	parse_cmd.h \
-	khash.h \
-	klist.h \
-	ksort.h \
-	$(WANDIO_SRCS)
-
-libcccommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
-			$(top_builddir)/common/libinterval3/libinterval3.la \
-			$(top_builddir)/common/libcsv/libcsv.la \
-			$(top_builddir)/common/libjsmn/libjsmn.la \
-			$(CONDITIONAL_LIBS)
+libjsmn_la_SOURCES = \
+	jsmn.c jsmn.h
 
 ACLOCAL_AMFLAGS = -I m4
 
