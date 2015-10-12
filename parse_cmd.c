@@ -1,24 +1,23 @@
 /*
- * This file is part of wdcap
+ * This file is part of cc-common
  *
  * Copyright (c) 2004-2009 The University of Waikato, Hamilton, New Zealand.
  * Authors: Daniel Lawson
  *          Shane Alcock
  *          Perry Lorier
  *
- * All rights reserved.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This code has been developed by the University of Waikato WAND
- * research group. For further information please see http://www.wand.net.nz/
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- * This source code is proprietary to the University of Waikato
- * WAND research group and may not be redistributed, published or disclosed
- * without prior permission from WAND.
- *
- * Report any bugs, questions or comments to contact@wand.net.nz
- *
- * $Id: parse_cmd.c 153 2009-07-02 22:50:00Z salcock $
- *
+ * You should have received a copy of the GNU General Public License along with
+ * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 static void skip_white(char **buf)
