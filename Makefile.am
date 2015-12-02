@@ -27,7 +27,7 @@ SUBDIRS = libpatricia libinterval3 libcsv libjsmn
 AM_CPPFLAGS = -I$(top_srcdir) \
 	-I$(top_srcdir)/common/libpatricia \
 	-I$(top_srcdir)/common/libpinterval3 \
-	-I$(top_srcdir)/common/libcsv
+	-I$(top_srcdir)/common/libcsv \
 	-I$(top_srcdir)/common/libjsmn
 
 noinst_LTLIBRARIES = libcccommon.la
@@ -42,15 +42,17 @@ WANDIO_SRCS=
 endif
 
 libcccommon_la_SOURCES = \
-	utils.c \
-	utils.h \
-	ip_utils.c \
-	ip_utils.h \
-	parse_cmd.c \
-	parse_cmd.h \
-	khash.h \
-	klist.h \
-	ksort.h \
+	utils.c 	\
+	utils.h 	\
+	ip_utils.c 	\
+	ip_utils.h 	\
+	jsmn_utils.h 	\
+	jsmn_utils.c 	\
+	parse_cmd.c 	\
+	parse_cmd.h 	\
+	khash.h 	\
+	klist.h 	\
+	ksort.h 	\
 	$(WANDIO_SRCS)
 
 libcccommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
