@@ -92,3 +92,16 @@ int jsmn_strtoul(unsigned long *dest, const char *json, jsmntok_t *tok)
   }
   return 0;
 }
+
+int jsmn_strtod(double *dest, const char *json, jsmntok_t *tok)
+{
+  char intbuf[128];
+  char *endptr = NULL;
+  assert(tok->end - tok->start < 128);
+  jsmn_strcpy(intbuf, tok, json);
+  *dest = strtod(intbuf, &endptr);
+  if (*endptr != '\0') {
+    return -1;
+  }
+  return 0;
+}

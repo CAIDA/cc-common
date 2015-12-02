@@ -38,7 +38,7 @@
  *
  * Note: the err label must be defined in the calling code
  */
-#define json_str_assert(json, tok, str)           \
+#define jsmn_str_assert(json, tok, str)           \
   do {                                            \
     if (json_strcmp(json, tok, str) != 0) {       \
       goto err;                                   \
@@ -52,7 +52,7 @@
  *
  * Note: the err label must be defined in the calling code
  */
-#define json_type_assert(tok, exptype)           \
+#define jsmn_type_assert(tok, exptype)           \
   do {                                           \
     if (tok->type != exptype) {                  \
       goto err;                                  \
@@ -105,5 +105,14 @@ void jsmn_strcpy(char *dest, jsmntok_t *tok, const char *json);
  * @return 0 if the value was parsed successfully, -1 otherwise
  */
 int jsmn_strtoul(unsigned long *dest, const char *json, jsmntok_t *tok);
+
+/** Convert the given json primitive value into a double
+ *
+ * @param dest          pointer to a double
+ * @param json          JSON string
+ * @param tok           pointer to the current token
+ * @return 0 if the value was parsed successfully, -1 otherwise
+ */
+int jsmn_strtod(double *dest, const char *json, jsmntok_t *tok);
 
 #endif /* __JSMN_UTILS_H */
