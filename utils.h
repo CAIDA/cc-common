@@ -50,6 +50,27 @@
  *
  */
 
+/** Randomize values in an array (in place)
+ * See https://en.wikipedia.org/wiki/Fisher-Yates_shuffle
+ * Requires: stdlib.h
+ *
+ * @param arr_t         Type of array values
+ * @param arr           Pointer to the array to randomize
+ * @param len           Number of elements in the array
+ */
+#define array_shuffle_fy(arr_t, arr, len)       \
+  do {                                          \
+    arr_t k;                                    \
+    int i, r;                                   \
+    for (i=(len)-1; i > 0; i--) {               \
+      r = rand() % (i+1);                       \
+      k = (arr)[i];                             \
+      (arr)[i] = (arr)[r];                      \
+      (arr)[r] = k;                             \
+    }                                           \
+  }                                             \
+  while (0)
+
 /** Internal to the STR macro */
 #define XSTR(a) #a
 
