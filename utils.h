@@ -1,16 +1,16 @@
-/* 
+/*
  * cc-common
  *
  * Alistair King, CAIDA, UC San Diego
  * corsaro-info@caida.org
  *
- * ntholl and htonll macros from 
+ * ntholl and htonll macros from
  *   http://www.codeproject.com/KB/cpp/endianness.aspx
  *
  * Other functions from scamper as noted in utils.c
- * 
+ *
  * Copyright (C) 2012 The Regents of the University of California.
- * 
+ *
  * This file is part of cc-common.
  *
  * cc-common is free software: you can redistribute it and/or modify
@@ -80,7 +80,7 @@
 /** Count the number of elements in an arbitrary array */
 #define ARR_CNT(a) (sizeof(a) / sizeof(a[0]))
 
-/* ntholl and htonll macros from 
+/* ntholl and htonll macros from
    http://www.codeproject.com/KB/cpp/endianness.aspx */
 /** Byte-swap a 64-bit integer */
 #ifndef ntohll
@@ -93,10 +93,10 @@
 #define htonll(x) ntohll(x)
 #endif
 
-/** Convert a host ordered short to a network ordered byte array 
+/** Convert a host ordered short to a network ordered byte array
  *
  * @param[out] bytes        The converted byte array
- * @param u16               The host-ordered short 
+ * @param u16               The host-ordered short
  */
 void bytes_htons(uint8_t *bytes, uint16_t u16);
 
@@ -114,13 +114,25 @@ void bytes_htonl(uint8_t *bytes, uint32_t u32);
  */
 void bytes_htonll(uint8_t *bytes, uint64_t u64);
 
-/** Convenience function to get the current time of day 
+/** Convenience function to get the current time of day
  *
  * @param[out] tv           A pointer to a timeval containing the time of day
  */
 void gettimeofday_wrap(struct timeval *tv);
 
-/** Allocate memory and set it to zero 
+/** Convenience function to get the current unix epoch time in milliseconds
+ *
+ * @return the current number of milliseconds since the unix epoch
+ */
+uint64_t epoch_msec();
+
+/** Convenience function to get the current unix epoch time in sec
+ *
+ * @return the current number of seconds since the unix epoch
+ */
+uint32_t epoch_sec();
+
+/** Allocate memory and set it to zero
  *
  * @param size              The size of memory to allocate
  * @return a pointer to zeroed memory if successful, -1 if an error occurs
@@ -134,7 +146,7 @@ void *malloc_zero(const size_t size);
  * @param y                The end timeval
  * @return 1 if the result is negative, 0 otherwise
  */
-int timeval_subtract (struct timeval *result, 
+int timeval_subtract (struct timeval *result,
 		      const struct timeval *x, const struct timeval *y);
 
 /** Remove a newline from the given string

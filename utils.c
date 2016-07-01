@@ -68,6 +68,20 @@ void bytes_htonll(uint8_t *bytes, uint64_t u64)
   return;
 }
 
+uint64_t epoch_msec()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (uint64_t) ((uint64_t) tv.tv_sec * 1000 + (uint64_t) tv.tv_usec / 1000);
+}
+
+uint32_t epoch_sec()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (uint32_t) tv.tv_sec;
+}
+
 void gettimeofday_wrap(struct timeval *tv)
 {
   struct timezone tz;
