@@ -48,13 +48,7 @@ Copyright
 ---------
 
 All code has been written by Alistair King <alistair@caida.org> and is released
-under the terms of the GPL (see the COPYING file of the including project),
-**except**:
-
- - [libpatricia](libpatricia/)
-   - Adapted from the
-     [Net::Patricia](http://search.cpan.org/~plonka/Net-Patricia-1.014/Patricia.am)
-     perl module by Dave Plonka, see [copyright notice](libpatricia/copyright).
+under a BSD license, **except**:
 
  - [libcsv](libcsv/)
    - Adapted from [libcsv](http://libcsv.sourceforge.net)
@@ -62,11 +56,34 @@ under the terms of the GPL (see the COPYING file of the including project),
    - Provided under the LGPL. See included
      [copyright notice](libcsv/COPYING.LESSER).
 
+ - [libinterval3](libinterval3/)
+   - Adapted from
+     [rb_tree](http://web.mit.edu/~emin/www.old/source_code/red_black_tree/index.html)
+     implementation. See the included
+     [license file](libinterval3/rb_tree/LICENSE).
+   - Interval tree code authored by Vasco Asturiano and Copyright The Regents of
+     the University of California and released under a BSD license.
+
+ - [libjsmn](libjsmn/)
+  - See the [libjsmn website](http://zserge.com/jsmn.html)
+  - Released under an [MIT license](libjsmn/LICENSE)
+
+ - [libpatricia](libpatricia/)
+   - Adapted from the
+     [Net::Patricia](http://search.cpan.org/~plonka/Net-Patricia-1.014/Patricia.am)
+     perl module by Dave Plonka, see [copyright notice](libpatricia/copyright).
+
+ - [khash.h](khash.h), [klist.h](klist.h), [ksort.h](ksort.h)
+   - Provided under an MIT license. See license notice at the top of the
+     respective files.
+
  - [parse_cmd.c](parse_cmd.c) and [parse_cmd.h](parse_cmd.h)
-   - Developed by [WAND](http://www.wand.net.nz) and used with permission.
+   - Developed by [WAND](http://www.wand.net.nz) and released under a BSD
+     license with permission from the author.
 
  - [utils.c](utils.c)
    - *timeval_subtract* code from
      http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
    - *bytes_htons*, *bytes_htonl*, *gettimeofday_wrap*, *malloc_zero* from
-     [scamper](http://www.caida.org/tools/measurement/scamper/)
+     [scamper](http://www.caida.org/tools/measurement/scamper/) and re-released
+     under a BSD license with permission from the author.
