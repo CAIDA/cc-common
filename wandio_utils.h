@@ -32,8 +32,8 @@
 #ifndef __WANDIO_UTILS_H
 #define __WANDIO_UTILS_H
 
+#include "config.h" /* < configure.ac must use AC_SYS_LARGEFILE */
 #include <stdarg.h>
-
 #include <wandio.h>
 
 /** Read a line from the given wandio file pointer
