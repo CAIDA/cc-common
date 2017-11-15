@@ -135,9 +135,9 @@ uint32_t epoch_sec();
 /** Allocate memory and set it to zero
  *
  * @param size              The size of memory to allocate
- * @return a pointer to zeroed memory if successful, -1 if an error occurs
+ * @return a pointer to zeroed memory if successful, NULL if an error occurs
  */
-void *malloc_zero(const size_t size);
+#define malloc_zero(size) calloc(1, size)
 
 /** Find the delta between two timevals
  *

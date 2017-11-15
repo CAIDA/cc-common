@@ -1,5 +1,5 @@
 /*
- * bytes_htons, bytes_htonl, gettimeofday_wrap, malloc_zero from scamper
+ * bytes_htons, bytes_htonl, gettimeofday_wrap from scamper
  *   http://www.caida.org/tools/measurement/scamper/
  * and re-released under a BSD license with permission from the author.
  *
@@ -90,16 +90,6 @@ void gettimeofday_wrap(struct timeval *tv)
   struct timezone tz;
   gettimeofday(tv, &tz);
   return;
-}
-
-void *malloc_zero(const size_t size)
-{
-  void *ptr;
-  if((ptr = malloc(size)) != NULL)
-    {
-      memset(ptr, 0, size);
-    }
-  return ptr;
 }
 
 int timeval_subtract (struct timeval *result,
