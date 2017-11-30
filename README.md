@@ -65,8 +65,8 @@ under a BSD license, **except**:
      the University of California and released under a BSD license.
 
  - [libjsmn](libjsmn/)
-  - See the [libjsmn website](http://zserge.com/jsmn.html)
-  - Released under an [MIT license](libjsmn/LICENSE)
+   - See the [libjsmn website](http://zserge.com/jsmn.html)
+   - Released under an [MIT license](libjsmn/LICENSE)
 
  - [libpatricia](libpatricia/)
    - Adapted from the
