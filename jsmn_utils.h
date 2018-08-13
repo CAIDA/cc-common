@@ -27,7 +27,7 @@
 #ifndef __JSMN_UTILS_H
 #define __JSMN_UTILS_H
 
-#include "jsmn.h"
+#include "libjsmn/jsmn.h"
 
 #define JSMN_NEXT(tok) (tok)++
 
@@ -41,7 +41,7 @@
  */
 #define jsmn_str_assert(json, tok, str)           \
   do {                                            \
-    if (json_strcmp(json, tok, str) != 0) {       \
+    if (jsmn_streq(json, tok, str) != 1) {       \
       goto err;                                   \
     }                                             \
   } while(0)
