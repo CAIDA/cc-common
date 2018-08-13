@@ -71,6 +71,7 @@ jsmntok_t *jsmn_skip(jsmntok_t *tok)
           tok = jsmn_skip(tok);
         }
       }
+      break;
     default:
       assert(0);
     }
