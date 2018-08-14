@@ -35,7 +35,7 @@
 
 #include "wandio_utils.h"
 
-off_t wandio_fgets(io_t *file, void *buffer, off_t len, int chomp)
+int64_t generic_fgets(void *file, void *buffer, off_t len, int chomp, read_cb_t *read_cb)
 {
   assert(file != NULL);
 
@@ -51,7 +51,7 @@ off_t wandio_fgets(io_t *file, void *buffer, off_t len, int chomp)
 
   for(i=0; !done && i < len-1; i++)
     {
-      if((rval = wandio_read(file, &cbuf, 1)) < 0)
+      if((rval = read_cb(file, &cbuf, 1)) < 0)
        {
          return rval;
        }
@@ -76,6 +76,12 @@ off_t wandio_fgets(io_t *file, void *buffer, off_t len, int chomp)
 
   ((char*)buffer)[i] = '\0';
   return i;
+}
+
+int64_t wandio_fgets(io_t *file, void *buffer, int64_t len, int chomp)
+{
+
+  return generic_fgets(file, buffer, len, chomp, (read_cb_t*)wandio_read);
 }
 
 #define WANDIO_ZLIB_SUFFIX ".gz"
