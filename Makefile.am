@@ -36,13 +36,6 @@ noinst_LTLIBRARIES = libcccommon.la
 
 CONDITIONAL_LIBS=
 
-# users of cc-common MUST have defined WITH_WANDIO
-if WITH_WANDIO
-WANDIO_SRCS=wandio_utils.c wandio_utils.h
-else
-WANDIO_SRCS=
-endif
-
 libcccommon_la_SOURCES = \
 	utils.c 	\
 	utils.h 	\
