@@ -47,8 +47,7 @@ libcccommon_la_SOURCES = \
 	parse_cmd.h 	\
 	khash.h 	\
 	klist.h 	\
-	ksort.h 	\
-	$(WANDIO_SRCS)
+	ksort.h
 
 libcccommon_la_LIBADD = $(top_builddir)/common/libpatricia/libpatricia.la \
 			$(top_builddir)/common/libinterval3/libinterval3.la \
