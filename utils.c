@@ -137,7 +137,7 @@ int strntotime(char *buf, size_t len, uint32_t *sec, uint32_t *nsec) {
   pch = memchr(buf, '.', len);
   if (pch == NULL) {
     /* no nano-seconds part */
-    if (buf[len - 1] == NULL) {
+    if (buf[len - 1] == '\0') {
       // the buffer is null terminated
       *sec = (uint32_t)strtoul(buf, NULL, 0);
     } else {
