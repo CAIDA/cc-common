@@ -50,8 +50,6 @@
 
 #include "utils.h"
 
-static uint32_t ten_to_the_power[10] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
-
 void bytes_htons(uint8_t *bytes, uint16_t u16)
 {
   uint16_t tmp = htons(u16);
@@ -129,29 +127,50 @@ void chomp(char *line)
     }
 }
 
-int parse_timestamp(char* buf, size_t len, uint32_t* seconds, uint32_t* nano_seconds){
-  char * pch = memchr(buf, '.', len);
-  char * t = buf;
-  if(pch==NULL){
-    printf("error!");
-    return -1;
-  }
-  // assign seconds value
-  *seconds = (uint32_t)strtoul(buf, &pch, 0);
+int strntotime(char *buf, size_t len, uint32_t *sec, uint32_t *nsec) {
+  static uint32_t ten_to_the_power[] = {1,     10,     100,     1000,
+                                        10000, 100000, 1000000, 10000000};
+  char *tmp_str, *pch;
+  int nano_len;
 
-  uint32_t nano = 0;
-  for(int i=0; i<=8; i++){
-    if(pch-buf+1+i+1>len){
-      // going outside the buffer
-      break;
+  /* check if timestamp have decimal part */
+  pch = memchr(buf, '.', len);
+  if (pch == NULL) {
+    /* no nano-seconds part */
+    if (buf[len - 1] == NULL) {
+      // the buffer is null terminated
+      *sec = (uint32_t)strtoul(buf, NULL, 0);
+    } else {
+      // the buffer is not null terminated
+      // need to make a copy and manually null terminate the string
+      tmp_str = (char *)malloc(sizeof(char) * len + 1);
+      memcpy(tmp_str, buf, len);
+      tmp_str[len] = '\0';
+      *sec = (uint32_t)strtoul(tmp_str, NULL, 0);
+      free(tmp_str);
     }
-    int digit = *(pch+1+i)-'0';
-    if(digit>9 || digit<0){
-      return -2;
-    }
-    nano += digit * ten_to_the_power[8-i];
+    *nsec = 0;
+    return 0;
   }
-  *nano_seconds = nano;
+
+  /* parse the full seconds part */
+  *pch = '\0';
+  *sec = (uint32_t)strtoul(buf, NULL, 0);
+
+  /* parse the decimal part of the timestamp */
+  pch++;
+  nano_len = (int)(buf + len - pch);
+  nano_len = nano_len > 8 ? 8 : nano_len;
+  uint32_t nano = 0;
+  for (int i = 0; i < nano_len; i++) {
+    int digit = *(pch) - '0';
+    if (digit > 9 || digit < 0) {
+      return -1;
+    }
+    nano += digit * ten_to_the_power[8 - i];
+    pch++;
+  }
+  *nsec = nano;
 
   return 0;
 }

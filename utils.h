@@ -160,14 +160,13 @@ int timeval_subtract (struct timeval *result,
 void chomp(char *line);
 
 /** Parse timestamp string into seconds and nano seconds
- * @param buf          timestamp string buffer
- * @param len          timestamp string buffer length
- * @param seconds      unsigned value for seconds part of the timestamp
- * @param nano_seconds unsigned integer for nanoseconds part of the timestamp
+ * @param buf     timestamp string buffer
+ * @param len     timestamp string buffer length
+ * @param sec     unsigned integer for seconds part of the timestamp
+ * @param nsec    unsigned integer for nanoseconds part of the timestamp
  *
- * @return 0 if no errors, -1 if no period in timestamp, -2 if timestamp contains non-digits
+ * @return 0 if no errors; negative values if errors occur
  */
-int parse_timestamp(char* buf, size_t len,
-                    uint32_t* seconds, uint32_t* nano_seconds);
+int strntotime(char* buf, size_t len, uint32_t *sec, uint32_t* nsec);
 
 #endif /* __UTILS_H */
