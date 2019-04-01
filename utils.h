@@ -163,10 +163,10 @@ void chomp(char *line);
  * @param buf     timestamp string buffer
  * @param len     timestamp string buffer length
  * @param sec     unsigned integer for seconds part of the timestamp
- * @param nsec    unsigned integer for nanoseconds part of the timestamp
+ * @param usec    unsigned integer for microsecond part of the timestamp
  *
- * @return 0 if no errors; negative values if errors occur
+ * @return 0 if no errors, negative values if errors occur
  */
-int strntotime(char* buf, size_t len, uint32_t *sec, uint32_t* nsec);
+int strntotime(char* buf, size_t len, uint32_t *sec, uint32_t* usec);
 
 #endif /* __UTILS_H */

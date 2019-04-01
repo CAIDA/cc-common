@@ -127,50 +127,55 @@ void chomp(char *line)
     }
 }
 
-int strntotime(char *buf, size_t len, uint32_t *sec, uint32_t *nsec) {
-  static uint32_t ten_to_the_power[] = {1,     10,     100,     1000,
-                                        10000, 100000, 1000000, 10000000};
-  char *tmp_str, *pch;
-  int nano_len;
+int strntotime(char *raw_buf, size_t len, uint32_t *sec, uint32_t *usec) {
+    static uint32_t ten_to_the_power[] = {1, 10, 100, 1000, 10000, 100000};
+    char *pch;
+    char buf[22];   // max 10 chars per uint32, plus one period, plus one null-terminator
+    int ulen;
+    len = strnlen(raw_buf, len);
 
-  /* check if timestamp have decimal part */
-  pch = memchr(buf, '.', len);
-  if (pch == NULL) {
-    /* no nano-seconds part */
-    if (buf[len - 1] == '\0') {
-      // the buffer is null terminated
-      *sec = (uint32_t)strtoul(buf, NULL, 0);
-    } else {
-      // the buffer is not null terminated
-      // need to make a copy and manually null terminate the string
-      tmp_str = (char *)malloc(sizeof(char) * len + 1);
-      memcpy(tmp_str, buf, len);
-      tmp_str[len] = '\0';
-      *sec = (uint32_t)strtoul(tmp_str, NULL, 0);
-      free(tmp_str);
+    /* sec pointer must not be NULL */
+    if(sec==NULL){
+        return -1;
     }
-    *nsec = 0;
-    return 0;
-  }
 
-  /* parse the full seconds part */
-  *pch = '\0';
-  *sec = (uint32_t)strtoul(buf, NULL, 0);
-
-  /* parse the decimal part of the timestamp */
-  pch++;
-  nano_len = (int)(buf + len - pch);
-  nano_len = nano_len > 8 ? 8 : nano_len;
-  uint32_t nano = 0;
-  for (int i = 0; i < nano_len; i++) {
-    int digit = *(pch) - '0';
-    if (digit > 9 || digit < 0) {
-      return -1;
+    /* create a local buffer for digits */
+    if(len > sizeof(buf) || len==0){
+        return -1;
     }
-    nano += digit * ten_to_the_power[8 - i];
+    memcpy(buf, raw_buf, len);
+    buf[len] = '\0';
+
+    /* parse the full seconds part */
+    *sec = (uint32_t)strtoul(buf, NULL, 10);
+
+    /* check if usec pointer is NULL, if so return directly */
+    if(usec == NULL){
+        return 0;
+    }
+    *usec = 0;
+
+    /* check if timestamp have decimal part */
+    pch = memchr(buf, '.', len);
+    if(pch==NULL){
+        return 0;
+    }
+
+    /* parse the decimal part of the timestamp */
     pch++;
-  }
-  *nsec = nano;
+    ulen = (int)(buf + len - pch);
+    if(ulen >6){
+        // support maximum 6 point precision
+        ulen = 6;
+    }
+    for (int i = 0; i <ulen; i++) {
+        int digit = *pch - '0';
+        if (digit > 9 || digit < 0) {
+            return -1;
+        }
+        *usec += digit * ten_to_the_power[5-i];
+        pch++;
+    }
 
-  return 0;
+    return 0;
 }
