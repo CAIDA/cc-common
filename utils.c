@@ -50,6 +50,8 @@
 
 #include "utils.h"
 
+static uint32_t ten_to_the_power[10] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
+
 void bytes_htons(uint8_t *bytes, uint16_t u16)
 {
   uint16_t tmp = htons(u16);
@@ -125,4 +127,31 @@ void chomp(char *line)
     {
       *newln = '\0';
     }
+}
+
+int parse_timestamp(char* buf, size_t len, uint32_t* seconds, uint32_t* nano_seconds){
+  char * pch = memchr(buf, '.', len);
+  char * t = buf;
+  if(pch==NULL){
+    printf("error!");
+    return -1;
+  }
+  // assign seconds value
+  *seconds = (uint32_t)strtoul(buf, &pch, 0);
+
+  uint32_t nano = 0;
+  for(int i=0; i<=8; i++){
+    if(pch-buf+1+i+1>len){
+      // going outside the buffer
+      break;
+    }
+    int digit = *(pch+1+i)-'0';
+    if(digit>9 || digit<0){
+      return -2;
+    }
+    nano += digit * ten_to_the_power[8-i];
+  }
+  *nano_seconds = nano;
+
+  return 0;
 }
