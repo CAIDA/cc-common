@@ -127,55 +127,73 @@ void chomp(char *line)
     }
 }
 
-int strntotime(char *raw_buf, size_t len, uint32_t *sec, uint32_t *usec) {
-    static uint32_t ten_to_the_power[] = {1, 10, 100, 1000, 10000, 100000};
-    char *pch;
-    char buf[22];   // max 10 chars per uint32, plus one period, plus one null-terminator
-    int ulen;
-    len = strnlen(raw_buf, len);
+#define SEC_PRECISION 10
+#define USEC_PRECISION 6
 
-    /* sec pointer must not be NULL */
-    if(sec==NULL){
-        return -1;
-    }
+int strntotime(char *buf, size_t len, uint32_t *sec, uint32_t *usec) {
+  static int ten_n[] = {1,      10,      100,      1000,      10000,
+                        100000, 1000000, 10000000, 100000000, 1000000000};
+  int sep = 0;
+  int i;
+  int digit;
 
-    /* create a local buffer for digits */
-    if(len > sizeof(buf) || len==0){
-        return -1;
-    }
-    memcpy(buf, raw_buf, len);
-    buf[len] = '\0';
-
-    /* parse the full seconds part */
-    *sec = (uint32_t)strtoul(buf, NULL, 10);
-
-    /* check if usec pointer is NULL, if so return directly */
-    if(usec == NULL){
-        return 0;
-    }
+  if (sec == NULL) {
+    return -1;
+  }
+  *sec = 0;
+  if (usec != NULL) {
     *usec = 0;
-
-    /* check if timestamp have decimal part */
-    pch = memchr(buf, '.', len);
-    if(pch==NULL){
-        return 0;
-    }
-
-    /* parse the decimal part of the timestamp */
-    pch++;
-    ulen = (int)(buf + len - pch);
-    if(ulen >6){
-        // support maximum 6 point precision
-        ulen = 6;
-    }
-    for (int i = 0; i <ulen; i++) {
-        int digit = *pch - '0';
-        if (digit > 9 || digit < 0) {
-            return -1;
-        }
-        *usec += digit * ten_to_the_power[5-i];
-        pch++;
-    }
-
+  }
+  if (len == 0) {
     return 0;
+  }
+
+  // find the decimal point (or end-of-string)
+  for (i = 0; i < len; i++) {
+    sep = i;
+    if (buf[i] == '.' || buf[i] == '\0') {
+      break;
+    }
+  }
+
+  if (sep == len - 1 && buf[sep] != '\0' && buf[sep] != '.') {
+    // NOTE: this assumes that buf[sep] is never dereferenced
+    sep++;
+  }
+
+  if (sep > SEC_PRECISION) {
+    // too many seconds to fit into a uint32
+    return -1;
+  }
+
+  // sep can be 0 in the case we're giving sth like ".032"
+  // we'll be generous and parse this properly
+
+  // parse the seconds component of the time
+  for (i = (sep - 1); i >= 0; i--) {
+    digit = buf[i] - '0';
+    if (digit > 9 || digit < 0) {
+      return -1;
+    }
+    *sec += digit * ten_n[sep - 1 - i];
+  }
+
+  // parse the sub-seconds component of the time (if there is one)
+  if (usec == NULL || sep >= len) {
+    return 0;
+  }
+
+  for (i = sep + 1; i < len; i++) {
+    int n_dig = i - sep;
+    if (buf[i] == '\0' || n_dig > USEC_PRECISION) {
+      return 0;
+    }
+    digit = buf[i] - '0';
+    if (digit > 9 || digit < 0) {
+      return -1;
+    }
+    *usec += digit * ten_n[USEC_PRECISION - n_dig];
+  }
+
+  return 0;
 }
