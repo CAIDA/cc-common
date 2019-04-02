@@ -93,6 +93,7 @@
 #define htonll(x) ntohll(x)
 #endif
 
+
 /** Convert a host ordered short to a network ordered byte array
  *
  * @param[out] bytes        The converted byte array
@@ -157,5 +158,15 @@ int timeval_subtract (struct timeval *result,
 * e.g. those returned by fgets (or similar)
 */
 void chomp(char *line);
+
+/** Parse timestamp string into seconds and nano seconds
+ * @param buf     timestamp string buffer
+ * @param len     timestamp string buffer length
+ * @param sec     unsigned integer for seconds part of the timestamp
+ * @param usec    unsigned integer for microsecond part of the timestamp
+ *
+ * @return 0 if no errors, negative values if errors occur
+ */
+int strntotime(char* buf, size_t len, uint32_t *sec, uint32_t* usec);
 
 #endif /* __UTILS_H */
