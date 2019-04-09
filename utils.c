@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -130,70 +131,44 @@ void chomp(char *line)
 #define SEC_PRECISION 10
 #define USEC_PRECISION 6
 
-int strntotime(char *buf, size_t len, uint32_t *sec, uint32_t *usec) {
+int strntotime(const char *buf, size_t len, uint32_t *sec, uint32_t *usec)
+{
   static int ten_n[] = {1,      10,      100,      1000,      10000,
                         100000, 1000000, 10000000, 100000000, 1000000000};
-  int sep = 0;
+  static const uint32_t max_prefix = 429496729;
+  static const char max_suffix = '5';
+
+  if (!sec)
+    return -1; // missing required parameter
   int i;
-  int digit;
 
-  if (sec == NULL) {
-    return -1;
-  }
-  *sec = 0;
-  if (usec != NULL) {
-    *usec = 0;
-  }
-  if (len == 0) {
-    return 0;
-  }
-
-  // find the decimal point (or end-of-string)
-  for (i = 0; i < len; i++) {
-    sep = i;
-    if (buf[i] == '.' || buf[i] == '\0') {
+  // parse seconds
+  for (i = 0; ; i++) {
+    if (i >= len || buf[i] == '\0') {
+      return 0; // end of input
+    } else if (isdigit(buf[i])) {
+      if (*sec >= max_prefix && (*sec > max_prefix || buf[i] > max_suffix))
+        return -1; // overflow
+      *sec = *sec * 10 + (buf[i] - '0');
+    } else if (buf[i] == '.') {
       break;
+    } else {
+      return -1; // invalid character
     }
   }
 
-  if (sep == len - 1 && buf[sep] != '\0' && buf[sep] != '.') {
-    // NOTE: this assumes that buf[sep] is never dereferenced
-    sep++;
-  }
-
-  if (sep > SEC_PRECISION) {
-    // too many seconds to fit into a uint32
-    return -1;
-  }
-
-  // sep can be 0 in the case we're giving sth like ".032"
-  // we'll be generous and parse this properly
-
-  // parse the seconds component of the time
-  for (i = (sep - 1); i >= 0; i--) {
-    digit = buf[i] - '0';
-    if (digit > 9 || digit < 0) {
-      return -1;
+  // parse sub-seconds
+  int frac_last_pos = i + USEC_PRECISION;
+  for (i++; ; i++) {
+    if (i >= len || buf[i] == '\0') {
+      return 0; // end of input
+    } else if (isdigit(buf[i])) {
+      if (usec && i <= frac_last_pos)
+        *usec += (buf[i] - '0') * ten_n[frac_last_pos - i];
+      // else, ignore insignificant digits
+    } else {
+      return -1; // invalid character
     }
-    *sec += digit * ten_n[sep - 1 - i];
   }
-
-  // parse the sub-seconds component of the time (if there is one)
-  if (usec == NULL || sep >= len) {
-    return 0;
-  }
-
-  for (i = sep + 1; i < len; i++) {
-    int n_dig = i - sep;
-    if (buf[i] == '\0' || n_dig > USEC_PRECISION) {
-      return 0;
-    }
-    digit = buf[i] - '0';
-    if (digit > 9 || digit < 0) {
-      return -1;
-    }
-    *usec += digit * ten_n[USEC_PRECISION - n_dig];
-  }
-
-  return 0;
 }
+
