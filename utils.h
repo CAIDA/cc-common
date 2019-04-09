@@ -167,6 +167,6 @@ void chomp(char *line);
  *
  * @return 0 if no errors, negative values if errors occur
  */
-int strntotime(char* buf, size_t len, uint32_t *sec, uint32_t* usec);
+int strntotime(const char* buf, size_t len, uint32_t *sec, uint32_t* usec);
 
 #endif /* __UTILS_H */
