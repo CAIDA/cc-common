@@ -15,6 +15,8 @@
 #ifndef _PATRICIA_H
 #define _PATRICIA_H
 
+#define HAVE_IPV6
+
 /* typedef unsigned int u_int; */
 typedef void (*void_fn_t)();
 /* { from defs.h */
@@ -85,15 +87,12 @@ void patricia_remove (patricia_tree_t *patricia, patricia_node_t *node);
 patricia_tree_t *New_Patricia (int maxbits);
 void Clear_Patricia (patricia_tree_t *patricia, void_fn_t func);
 void Destroy_Patricia (patricia_tree_t *patricia, void_fn_t func);
+
 void patricia_process (patricia_tree_t *patricia, void_fn_t func);
 
+char *prefix_toa (prefix_t * prefix);
+
 /* { from demo.c */
-
-prefix_t *
-New_Prefix (int family, void *dest, int bitlen);
-
-prefix_t *
-New_Prefix2 (int family, void *dest, int bitlen, prefix_t *prefix);
 
 prefix_t *
 ascii2prefix (int family, char *string);
@@ -103,7 +102,7 @@ make_and_lookup (patricia_tree_t *tree, char *string);
 
 /* } */
 
-#define PATRICIA_MAXBITS 128
+#define PATRICIA_MAXBITS	(sizeof(struct in6_addr) * 8)
 #define PATRICIA_NBIT(x)        (0x80 >> ((x) & 0x7f))
 #define PATRICIA_NBYTE(x)       ((x) >> 3)
 

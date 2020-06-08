@@ -70,7 +70,7 @@ under a BSD license, **except**:
 
  - [libpatricia](libpatricia/)
    - Adapted from the
-     [Net::Patricia](http://search.cpan.org/~plonka/Net-Patricia-1.014/Patricia.am)
+     [Net::Patricia](https://metacpan.org/release/Net-Patricia) 1.22
      perl module by Dave Plonka, see [copyright notice](libpatricia/copyright).
 
  - [khash.h](khash.h), [klist.h](klist.h), [ksort.h](ksort.h)
