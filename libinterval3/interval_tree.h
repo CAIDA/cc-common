@@ -71,7 +71,7 @@ typedef struct interval
  *
  * @return the interval tree instance created, NULL if an error occurs
  */
-interval_tree_t *interval_tree_init();
+interval_tree_t *interval_tree_init(void);
 
 /** Free an interval tree instance
  *

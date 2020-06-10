@@ -125,13 +125,13 @@ void gettimeofday_wrap(struct timeval *tv);
  *
  * @return the current number of milliseconds since the unix epoch
  */
-uint64_t epoch_msec();
+uint64_t epoch_msec(void);
 
 /** Convenience function to get the current unix epoch time in sec
  *
  * @return the current number of seconds since the unix epoch
  */
-uint32_t epoch_sec();
+uint32_t epoch_sec(void);
 
 /** Allocate memory and set it to zero
  *
