@@ -55,7 +55,7 @@ void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   if (i == famsize)
     return;
   // calculate partial byte
-  a[i] = p[i] & ~(0xFF >> (pfx->masklen % 8));
+  a[i] = p[i] & ipvx_bytemask[pfx->masklen % 8];
   // set trailing bytes to 0
   memset(a+i+1, 0, famsize - i - 1);
 }
@@ -72,7 +72,7 @@ void ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   if (i == famsize)
     return;
   // calculate partial byte
-  a[i] = p[i] | (0xFF >> (pfx->masklen % 8));
+  a[i] = p[i] | ipvx_not_bytemask[pfx->masklen % 8];
   // set trailing bytes to 1
   memset(a+i+1, 0xFF, famsize - i - 1);
 }
@@ -165,7 +165,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
     return i * 8;
   // find first unequal bit in the final partial byte
   uint8_t unequal_bits = chunk_op(uint8_t, i, a, ^, b);
-  unequal_bits |= (0xFF >> nbits); // bits past masklen are "unequal"
+  unequal_bits |= ipvx_not_bytemask[nbits]; // bits past masklen are "unequal"
   return i * 8 + clz8(unequal_bits);
 }
 
@@ -178,7 +178,7 @@ void ipvx_normalize(ipvx_prefix_t *pfx)
   memset(x + i, 0, famsize - i);
   // if there's a partial byte, clear its trailing bits
   if (pfx->masklen % 8 != 0)
-    x[i-1] &= (0xFF << (8 - (pfx->masklen % 8)));
+    x[i-1] &= ipvx_bytemask[pfx->masklen % 8];
 }
 
 int ipvx_pton_addr(const char *str, ipvx_prefix_t *pfx)
@@ -240,7 +240,8 @@ const char *ipvx_ntop_pfx(const ipvx_prefix_t *pfx, char *buf)
  *       split_range(). The maximum possible recursion depth is 32.
  */
 static int split_range(const ipvx_prefix_t *pfx,
-                       const ipvx_prefix_t *lo, const ipvx_prefix_t *hi,
+                       const ipvx_prefix_t *lo, int lo_bounded,
+                       const ipvx_prefix_t *hi, int hi_bounded,
                        ipvx_prefix_list_t **pfx_list)
 {
 #if 0
@@ -250,57 +251,56 @@ static int split_range(const ipvx_prefix_t *pfx,
   fprintf(stderr, "%s(pfx=%s, lo=%s, hi=%s, ...)\n", __func__,
       ipvx_ntop_pfx(pfx, bufpfx), ipvx_ntop_pfx(lo, buflo), ipvx_ntop_pfx(hi, bufhi));
 #endif
-  assert(ipvx_pfx_contains(pfx, lo));
-  assert(ipvx_pfx_contains(pfx, hi));
-  ipvx_prefix_t subpfx;
+  // assert(ipvx_pfx_contains(pfx, lo));
+  // assert(ipvx_pfx_contains(pfx, hi));
+  ipvx_prefix_t subpfx, last;
 
-  ipvx_prefix_t first, last;
-
-loop:
-  ipvx_last_addr(pfx, &last); // last addr in pfx
-
-  if (ipvx_addr_eq(lo, pfx) && ipvx_addr_eq(hi, &last)) {
-    // This pfx exactly matches [lo,hi]; add it to the list.
-    ipvx_prefix_list_t *new_node = NULL;
-    if (!(new_node = malloc(sizeof(ipvx_prefix_list_t)))) {
-      return -1;
+  do {
+    if ((lo_bounded || ipvx_addr_eq(lo, pfx)) &&
+        (hi_bounded || (ipvx_last_addr(pfx, &last), ipvx_addr_eq(hi, &last)))) {
+      // This pfx exactly matches [lo,hi]; add it to the list.
+      ipvx_prefix_list_t *new_node;
+      if (!(new_node = malloc(sizeof(ipvx_prefix_list_t)))) {
+        return -1;
+      }
+      new_node->prefix = *pfx;
+      new_node->next = *pfx_list;
+      *pfx_list = new_node;
+      return 0;
     }
-    new_node->prefix = *pfx;
-    new_node->next = *pfx_list;
-    *pfx_list = new_node;
-    return 0;
-  }
 
-  if (pfx != &subpfx) {
-    subpfx = *pfx;
-  }
-  subpfx.masklen++; // pfx's lower half
+    if (pfx != &subpfx) {
+      subpfx = *pfx;
+    }
+    subpfx.masklen++; // pfx's lower half
 
-  if (ipvx_pfx_contains(&subpfx, hi)) {
-    // both lo and hi are in lower half
-    pfx = &subpfx;
-    goto loop;
-  }
+    if (!hi_bounded && ipvx_pfx_contains(&subpfx, hi)) {
+      // both lo and hi are in lower half
+      pfx = &subpfx;
+      // tail recursion
 
-  if (!ipvx_pfx_contains(&subpfx, lo)) {
-    // both lo and hi are in upper half
-    ipvx_set_bit(&subpfx, subpfx.masklen - 1); // pfx's upper half
-    pfx = &subpfx;
-    goto loop;
-  }
+    } else if (!lo_bounded && !ipvx_pfx_contains(&subpfx, lo)) {
+      // both lo and hi are in upper half
+      ipvx_set_bit(&subpfx, subpfx.masklen - 1); // pfx's upper half
+      pfx = &subpfx;
+      // tail recursion
 
-  // we must search both halves of the input pfx
+    } else {
+      // search lower half
+      ipvx_last_addr(&subpfx, &last); // last addr in lower half
+      if (split_range(&subpfx, lo, lo_bounded, &last, 1, pfx_list) < 0)
+        return -1;
 
-  ipvx_last_addr(&subpfx, &last); // last addr in lower half
-  if (split_range(&subpfx, lo, &last, pfx_list) < 0)
-    return -1;
-
-  ipvx_set_bit(&subpfx, subpfx.masklen - 1); // pfx's upper half
-  ipvx_first_addr(&subpfx, &first); // first addr in upper half
-  if (split_range(&subpfx, &first, hi, pfx_list) < 0)
-    return -1;
-
-  return 0;
+      // search upper half
+      ipvx_prefix_t first;
+      ipvx_set_bit(&subpfx, subpfx.masklen - 1); // pfx's upper half
+      ipvx_first_addr(&subpfx, &first); // first addr in upper half
+      lo = &first;
+      pfx = &subpfx;
+      lo_bounded = 1;
+      // tail recursion
+    }
+  } while (1);
 }
 
 int ipvx_range_to_prefix(const ipvx_prefix_t *lower, const ipvx_prefix_t *upper,
@@ -335,7 +335,7 @@ int ipvx_range_to_prefix(const ipvx_prefix_t *lower, const ipvx_prefix_t *upper,
 #endif
 
   *pfx_list = NULL;
-  return split_range(&addr, lower, upper, pfx_list);
+  return split_range(&addr, lower, 0, upper, 0, pfx_list);
 }
 
 void ipvx_prefix_list_free(ipvx_prefix_list_t *pfx_list)
