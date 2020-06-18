@@ -56,7 +56,7 @@ void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   addr->family = pfx->family;
   addr->masklen = famsize * 8;
   unsigned i = pfx->masklen / 8;
-  memcpy(addr->addr._u8, pfx->addr._u8, i);
+  memcpy(&addr->addr, &pfx->addr, i);
   if (i == famsize)
     return;
   // calculate partial byte
@@ -71,7 +71,7 @@ ipvx_prefix_t *ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   addr->family = pfx->family;
   addr->masklen = famsize * 8;
   unsigned i = pfx->masklen / 8;
-  memcpy(addr->addr._u8, pfx->addr._u8, i);
+  memcpy(&addr->addr, &pfx->addr, i);
   if (i == famsize)
     return addr;
   // calculate partial byte
@@ -236,6 +236,25 @@ static inline int ipvx_bit_eq(const ipvx_prefix_t *a, const ipvx_prefix_t *b, in
   return !((a->addr._u8[n/8] ^ b->addr._u8[n/8]) & (0x80 >> (n%8)));
 }
 
+// Is addr the last addr in its prefix?
+static int ipvx_addr_is_last_in_pfx(const ipvx_prefix_t *addr, uint8_t masklen)
+{
+  int i = masklen / 8;
+  if (masklen % 8) {
+    if ((addr->addr._u8[i] | netmask8(masklen % 8)) != 0xFF) {
+      return 0;
+    }
+    i++;
+  }
+  int famsize = ipvx_family_size(addr->family);
+  for (; i < famsize; i++) {
+    if (addr->addr._u8[i] != 0xFF) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 /**
  * Recursively compute network addresses to cover range lo-hi
  *
@@ -252,11 +271,11 @@ static int split_range(const ipvx_prefix_t *pfx,
                        const ipvx_prefix_t *hi,
                        ipvx_prefix_list_t **pfx_list)
 {
-  ipvx_prefix_t subpfx, last;
+  ipvx_prefix_t subpfx;
 
   do {
     if ((!lo || ipvx_addr_eq(lo, pfx)) &&
-        (!hi || ipvx_addr_eq(hi, ipvx_last_addr(pfx, &last)))) {
+        (!hi || ipvx_addr_is_last_in_pfx(hi, pfx->masklen))) {
       // This pfx exactly matches [lo,hi]; add it to the list.
       ipvx_prefix_list_t *new_node;
       if (!(new_node = malloc(sizeof(ipvx_prefix_list_t)))) {
@@ -317,21 +336,21 @@ int ipvx_range_to_prefix(const ipvx_prefix_t *lower, const ipvx_prefix_t *upper,
     upper = &upper_addr;
   } // else, upper already is its own last address
 
-  ipvx_prefix_t addr;
+  ipvx_prefix_t pfx;
 #if 0
-  // Set starting addr to 0.0.0.0/0 or ::/0
-  memset(&addr, 0, sizeof(addr));
-  addr.family = lower->family;
+  // Set starting pfx to 0.0.0.0/0 or ::/0
+  memset(&pfx, 0, sizeof(pfx));
+  pfx.family = lower->family;
 #else
-  // Set starting addr to longest common prefix
-  addr.family = lower->family;
-  addr.masklen = ipvx_equal_length(lower, upper);
-  memcpy(&addr.addr, &lower->addr, (addr.masklen + 7) / 8);
-  ipvx_normalize(&addr);
+  // Set starting pfx to longest common prefix
+  pfx.family = lower->family;
+  pfx.masklen = ipvx_equal_length(lower, upper);
+  memcpy(&pfx.addr, &lower->addr, (pfx.masklen + 7) / 8);
+  ipvx_normalize(&pfx);
 #endif
 
   *pfx_list = NULL;
-  return split_range(&addr, lower, upper, pfx_list);
+  return split_range(&pfx, lower, upper, pfx_list);
 }
 
 void ipvx_prefix_list_free(ipvx_prefix_list_t *pfx_list)
