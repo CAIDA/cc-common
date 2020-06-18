@@ -27,7 +27,6 @@
 /** @file
  *
  * @brief Utilities for IPv4 and IPv6 addresses
- *
  * @author Ken Keys
  */
 
@@ -71,7 +70,7 @@ typedef struct ipvx_prefix_list {
  * Set a bit in an IPvX address to 1.
  *
  * @param pfx       Pointer to the address to be modified
- * @param n         The bit index to set (0 is MSB)
+ * @param n         The bit index to set (MSB is 0, LSB is 31 or 127)
  */
 static inline void ipvx_set_bit(ipvx_prefix_t *pfx, int n)
 {
@@ -82,7 +81,7 @@ static inline void ipvx_set_bit(ipvx_prefix_t *pfx, int n)
  * Set a bit in an IPvX address to 0.
  *
  * @param pfx       Pointer to the address to be modified
- * @param n         The bit index to clear (0 is MSB)
+ * @param n         The bit index to clear (MSB is 0, LSB is 31 or 127)
  */
 static inline void ipvx_clear_bit(ipvx_prefix_t *pfx, int n)
 {
@@ -93,7 +92,7 @@ static inline void ipvx_clear_bit(ipvx_prefix_t *pfx, int n)
  * Toggle a bit in an IPvX address.
  *
  * @param pfx       Pointer to the address to be modified
- * @param n         The bit index to toggle (0 is MSB)
+ * @param n         The bit index to toggle (MSB is 0, LSB is 31 or 127)
  */
 static inline void ipvx_toggle_bit(ipvx_prefix_t *pfx, int n)
 {
@@ -119,13 +118,19 @@ void ipvx_normalize(ipvx_prefix_t *pfx);
  */
 int ipvx_pton_addr(const char *str, ipvx_prefix_t *addr);
 
+enum {
+   // negative error codes
+   IPVX_ERR_INVALID_ADDR = -1,
+   IPVX_ERR_INVALID_MASKLEN = -2,
+};
+
 /**
  * Parse an IPv4 or IPv6 prefix string.
  *
  * @param str      Pointer to the string to parse.
  * @param pfx      Pointer to where to store the result.
- * @return 0 if successful, -1 for an invalid address string, or -2 for an
- * invalid mask length.
+ * @return 0 if successful, or one of the negative error codes
+ *         IPVX_ERR_INVALID_ADDR or IPVX_ERR_INVALID_MASKLEN.
  *
  * The prefix string is an address followed by an optional "/" and mask
  * length.  If the mask length is omitted, it defaults to the maximum allowed
@@ -158,7 +163,7 @@ const char *ipvx_ntop_addr(const ipvx_prefix_t *addr, char *buf);
 const char *ipvx_ntop_pfx(const ipvx_prefix_t *pfx, char *buf);
 
 /**
- * Compute first address in given prefix
+ * Compute the first address in given prefix
  *
  * @param pfx      Pointer to the pfx to calculate the address for
  * @param addr     Pointer to the address to store the result
@@ -166,7 +171,7 @@ const char *ipvx_ntop_pfx(const ipvx_prefix_t *pfx, char *buf);
 void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr);
 
 /**
- * Compute last address in given prefix
+ * Compute the last address in given prefix
  *
  * @param pfx      Pointer to the pfx to calculate the address for
  * @param addr     Pointer to the address to store the result
@@ -201,14 +206,20 @@ static inline int ipvx_addr_eq(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
   return (memcmp(&a->addr, &b->addr, ipvx_family_size(a->family)) == 0);
 }
 
+/**
+ * Test whether one prefix contains another prefix or address.
+ *
+ * @param parent   Pointer to the parent prefix
+ * @param child    Pointer to the child prefix or address
+ * @return 1 if parent contains child, 0 otherwise.
+ */
 static inline int ipvx_pfx_contains(const ipvx_prefix_t *parent, const ipvx_prefix_t *child)
 {
   const uint8_t *p = parent->addr._u8;
   const uint8_t *c = child->addr._u8;
   const uint16_t m = parent->masklen;
 
-  return (parent->masklen <= child->masklen) &&
-    (memcmp(p, c, parent->masklen / 8) == 0) &&
+  return (m <= child->masklen) && (memcmp(p, c, m / 8) == 0) &&
     ((m % 8 == 0) || (p[m/8] == (c[m/8] & ~(0xFF >> (m % 8))))) ;
 }
 
@@ -232,7 +243,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b);
  * @param[out] pfx_list A linked list of prefixes
  * @return 0 if the list is successfully built, -1 if an error occurs
  *
- * @note The pfx_list returned MUST be free'd using ipvx_prefix_list_free().
+ * @note The pfx_list returned must be freed using ipvx_prefix_list_free().
  */
 int ipvx_range_to_prefix(const ipvx_prefix_t *lower, const ipvx_prefix_t *upper,
     ipvx_prefix_list_t **pfx_list);

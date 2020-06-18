@@ -27,7 +27,6 @@
 /** @file
  *
  * @brief Utilities for IPv4 and IPv6 addresses
- *
  * @author Ken Keys
  */
 
@@ -195,22 +194,23 @@ int ipvx_pton_addr(const char *str, ipvx_prefix_t *pfx)
 
 int ipvx_pton_pfx(const char *str, ipvx_prefix_t *pfx)
 {
+  int rc;
   char dup[INET6_ADDRSTRLEN];
   char *p = strchr(str, '/');
   if (!p)
     return ipvx_pton_addr(str, pfx);
-  if (p > str + sizeof(dup) - 1)
-    return -1; // invalid addr
+  if (p > str + sizeof(dup) - 1) // addr is too long
+    return IPVX_ERR_INVALID_ADDR;
   strcpy(dup, str);
   dup[p - str] = '\0';
   p++;
-  if (ipvx_pton_addr(dup, pfx) < 0)
-    return -1; // invalid addr
+  if ((rc = ipvx_pton_addr(dup, pfx)) < 0)
+    return rc;
   errno = 0;
   char *end = p;
   unsigned long masklen = strtoul(p, &end, 10);
   if (errno || *end || end == p || masklen > pfx->masklen)
-    return -2; // invalid prefix len
+    return IPVX_ERR_INVALID_MASKLEN;
   pfx->masklen = (uint8_t)masklen;
   ipvx_normalize(pfx);
   return 0; // ok
