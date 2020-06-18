@@ -44,11 +44,11 @@
 
 #include "ipvx_utils.h"
 
-static uint8_t ipvx_bytemask[] =
-  { 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff };
+// byte-sized netmask
+static inline uint8_t netmask8(int n) { return ~(0xFF >> n); }
 
-static uint8_t ipvx_not_bytemask[] =
-  { 0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00 };
+// byte-sized hostmask
+static inline uint8_t hostmask8(int n) { return 0xFF >> n; }
 
 void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
 {
@@ -56,28 +56,29 @@ void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   addr->family = pfx->family;
   addr->masklen = famsize * 8;
   unsigned i = pfx->masklen / 8;
-  memcpy(addr->addr.u8, pfx->addr.u8, i);
+  memcpy(addr->addr._u8, pfx->addr._u8, i);
   if (i == famsize)
     return;
   // calculate partial byte
-  addr->addr.u8[i] = pfx->addr.u8[i] & ipvx_bytemask[pfx->masklen % 8];
+  addr->addr._u8[i] = pfx->addr._u8[i] & netmask8(pfx->masklen % 8);
   // set trailing bytes to 0
-  memset(addr->addr.u8+i+1, 0, famsize - i - 1);
+  memset(addr->addr._u8+i+1, 0, famsize - i - 1);
 }
 
-void ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
+ipvx_prefix_t *ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
 {
   uint8_t famsize = ipvx_family_size(pfx->family);
   addr->family = pfx->family;
   addr->masklen = famsize * 8;
   unsigned i = pfx->masklen / 8;
-  memcpy(addr->addr.u8, pfx->addr.u8, i);
+  memcpy(addr->addr._u8, pfx->addr._u8, i);
   if (i == famsize)
-    return;
+    return addr;
   // calculate partial byte
-  addr->addr.u8[i] = pfx->addr.u8[i] | ipvx_not_bytemask[pfx->masklen % 8];
+  addr->addr._u8[i] = pfx->addr._u8[i] | hostmask8(pfx->masklen % 8);
   // set trailing bytes to 1
-  memset(addr->addr.u8+i+1, 0xFF, famsize - i - 1);
+  memset(addr->addr._u8+i+1, 0xFF, famsize - i - 1);
+  return addr;
 }
 
 // count leading zeros in a uint8_t
@@ -109,8 +110,8 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
   // Jump into the search at the largest applicable chunk size, then
   // repeatedly reduce chunk size until we find an unequal byte.
   switch ((nbits + 7) / 8) {
-#if 0 // If we knew the addresses were 64-bit-aligned, it would be more
-      // efficient to use an uint64 test.
+#if 0 // If we knew the addresses were 64-bit-aligned, it would be most
+      // efficient to start with a uint64 test.
   case 16: case 15: case 14: case 13: case 12: case 11: case 10: case 9:
     if (nbits > 64) {
       if (a->addr.u64[i] == b->addr.u64[i]) { i++; nbits -= 64; }
@@ -119,17 +120,17 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
     i = i << 1; // convert to offset of a uint32
     // fall through
 
-#else // Alas, we know only that they are 32-bit-aligned, so a pair of
-      // 32-bit tests are more efficient (and safe).
+#else // Alas, we know only that they are 32-bit-aligned, so we start with
+      // uint32 tests.
   case 16: case 15: case 14: case 13:
     if (nbits > 32) {
-      if (a->addr.u32[i] == b->addr.u32[i]) { i++; nbits -= 32; }
+      if (a->addr._u32[i] == b->addr._u32[i]) { i++; nbits -= 32; }
       else { nbits = 32; }
     }
     // fall through
   case 12: case 11: case 10: case 9:
     if (nbits > 32) {
-      if (a->addr.u32[i] == b->addr.u32[i]) { i++; nbits -= 32; }
+      if (a->addr._u32[i] == b->addr._u32[i]) { i++; nbits -= 32; }
       else { nbits = 32; }
     }
     // fall through
@@ -137,7 +138,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
   case 8: case 7: case 6: case 5:
     if (nbits > 32) {
-      if (a->addr.u32[i] == b->addr.u32[i]) { i++; nbits -= 32; }
+      if (a->addr._u32[i] == b->addr._u32[i]) { i++; nbits -= 32; }
       else { nbits = 32; }
     }
     i = i << 1; // convert to offset of a uint16
@@ -145,7 +146,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
   case 4: case 3:
     if (nbits > 16) {
-      if (a->addr.u16[i] == b->addr.u16[i]) { i++; nbits -= 16; }
+      if (a->addr._u16[i] == b->addr._u16[i]) { i++; nbits -= 16; }
       else { nbits = 16; }
     }
     i = i << 1; // convert to offset of a uint8
@@ -153,7 +154,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
   case 2:
     if (nbits > 8) {
-      if (a->addr.u8[i] == b->addr.u8[i]) { i++; nbits -= 8; }
+      if (a->addr._u8[i] == b->addr._u8[i]) { i++; nbits -= 8; }
       else { nbits = 8; }
     }
   }
@@ -162,8 +163,8 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
   if (nbits == 0)
     return i * 8;
   // find first unequal bit in the final partial byte
-  uint8_t unequal_bits = a->addr.u8[i] ^ b->addr.u8[i];
-  unequal_bits |= ipvx_not_bytemask[nbits]; // bits past masklen are "unequal"
+  uint8_t unequal_bits = a->addr._u8[i] ^ b->addr._u8[i];
+  unequal_bits |= hostmask8(nbits); // bits past masklen are "unequal"
   return i * 8 + clz8(unequal_bits);
 }
 
@@ -172,10 +173,10 @@ void ipvx_normalize(ipvx_prefix_t *pfx)
   unsigned famsize = ipvx_family_size(pfx->family);
   unsigned i = (pfx->masklen + 7) / 8;
   // clear trailing bytes
-  memset(&pfx->addr.u8[i], 0, famsize - i);
+  memset(&pfx->addr._u8[i], 0, famsize - i);
   // if there's a partial byte, clear its trailing bits
   if (pfx->masklen % 8 != 0)
-    pfx->addr.u8[i-1] &= ipvx_bytemask[pfx->masklen % 8];
+    pfx->addr._u8[i-1] &= netmask8(pfx->masklen % 8);
 }
 
 int ipvx_pton_addr(const char *str, ipvx_prefix_t *pfx)
@@ -232,7 +233,7 @@ const char *ipvx_ntop_pfx(const ipvx_prefix_t *pfx, char *buf)
 // (nth bit of a) == (nth bit of b)
 static inline int ipvx_bit_eq(const ipvx_prefix_t *a, const ipvx_prefix_t *b, int n)
 {
-  return !((a->addr.u8[n/8] ^ b->addr.u8[n/8]) & (0x80 >> (n%8)));
+  return !((a->addr._u8[n/8] ^ b->addr._u8[n/8]) & (0x80 >> (n%8)));
 }
 
 /**
@@ -255,7 +256,7 @@ static int split_range(const ipvx_prefix_t *pfx,
 
   do {
     if ((!lo || ipvx_addr_eq(lo, pfx)) &&
-        (!hi || (ipvx_last_addr(pfx, &last), ipvx_addr_eq(hi, &last)))) {
+        (!hi || ipvx_addr_eq(hi, ipvx_last_addr(pfx, &last)))) {
       // This pfx exactly matches [lo,hi]; add it to the list.
       ipvx_prefix_list_t *new_node;
       if (!(new_node = malloc(sizeof(ipvx_prefix_list_t)))) {
@@ -267,17 +268,18 @@ static int split_range(const ipvx_prefix_t *pfx,
       return 0;
     }
 
+    int bitnum = pfx->masklen;
     if (pfx != &subpfx) {
       subpfx = *pfx;
     }
     subpfx.masklen++; // pfx's lower half
 
-    if (hi && ipvx_bit_eq(&subpfx, hi, pfx->masklen)) {
+    if (hi && ipvx_bit_eq(&subpfx, hi, bitnum)) {
       // hi is in lower half (and since lo < hi, so is lo)
       pfx = &subpfx;
       // tail recursion
 
-    } else if (lo && !ipvx_bit_eq(&subpfx, lo, pfx->masklen)) {
+    } else if (lo && !ipvx_bit_eq(&subpfx, lo, bitnum)) {
       // lo is in upper half (and since hi > lo, so is hi)
       ipvx_set_bit(&subpfx, subpfx.masklen - 1); // pfx's upper half
       pfx = &subpfx;
@@ -305,7 +307,7 @@ int ipvx_range_to_prefix(const ipvx_prefix_t *lower, const ipvx_prefix_t *upper,
 
   if (lower->masklen < maxlen) {
     // get the first address of the lower prefix
-    ipvx_last_addr(lower, &lower_addr);
+    ipvx_first_addr(lower, &lower_addr);
     lower = &lower_addr;
   } // else, lower already is its own first address
 

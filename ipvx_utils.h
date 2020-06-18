@@ -49,9 +49,9 @@ typedef struct ipvx_prefix {
   union {
     struct in_addr v4;
     struct in6_addr v6;
-    uint8_t u8[1];
-    uint16_t u16[1];
-    uint32_t u32[1];
+    uint8_t _u8[16];
+    uint16_t _u16[8];
+    uint32_t _u32[4];
   } addr;
 } ipvx_prefix_t;
 
@@ -75,7 +75,7 @@ typedef struct ipvx_prefix_list {
  */
 static inline void ipvx_set_bit(ipvx_prefix_t *pfx, int n)
 {
-  pfx->addr.u8[n/8] |= (0x80 >> (n % 8));
+  pfx->addr._u8[n/8] |= (0x80 >> (n % 8));
 }
 
 /**
@@ -86,7 +86,7 @@ static inline void ipvx_set_bit(ipvx_prefix_t *pfx, int n)
  */
 static inline void ipvx_clear_bit(ipvx_prefix_t *pfx, int n)
 {
-  pfx->addr.u8[n/8] &= ~(0x80 >> (n % 8));
+  pfx->addr._u8[n/8] &= ~(0x80 >> (n % 8));
 }
 
 /**
@@ -97,7 +97,7 @@ static inline void ipvx_clear_bit(ipvx_prefix_t *pfx, int n)
  */
 static inline void ipvx_toggle_bit(ipvx_prefix_t *pfx, int n)
 {
-  pfx->addr.u8[n/8] ^= (0x80 >> (n % 8));
+  pfx->addr._u8[n/8] ^= (0x80 >> (n % 8));
 }
 
 /**
@@ -171,7 +171,7 @@ void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr);
  * @param pfx      Pointer to the pfx to calculate the address for
  * @param addr     Pointer to the address to store the result
  */
-void ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr);
+ipvx_prefix_t *ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr);
 
 /**
  * Test two prefixes for equality
@@ -203,8 +203,8 @@ static inline int ipvx_addr_eq(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
 static inline int ipvx_pfx_contains(const ipvx_prefix_t *parent, const ipvx_prefix_t *child)
 {
-  const uint8_t *p = parent->addr.u8;
-  const uint8_t *c = child->addr.u8;
+  const uint8_t *p = parent->addr._u8;
+  const uint8_t *c = child->addr._u8;
   const uint16_t m = parent->masklen;
 
   return (parent->masklen <= child->masklen) &&
