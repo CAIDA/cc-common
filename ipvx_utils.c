@@ -24,6 +24,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/** @file
+ *
+ * @brief Utilities for IPv4 and IPv6 addresses
+ *
+ * @author Ken Keys
+ */
+
 #include "config.h"
 
 #include <assert.h>
@@ -48,16 +55,14 @@ void ipvx_first_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   const uint8_t famsize = ipvx_family_size(pfx->family);
   addr->family = pfx->family;
   addr->masklen = famsize * 8;
-  uint8_t *a = (uint8_t*)&addr->addr;
-  const uint8_t *p = (const uint8_t*)&pfx->addr;
   unsigned i = pfx->masklen / 8;
-  memcpy(a, p, i);
+  memcpy(addr->addr.u8, pfx->addr.u8, i);
   if (i == famsize)
     return;
   // calculate partial byte
-  a[i] = p[i] & ipvx_bytemask[pfx->masklen % 8];
+  addr->addr.u8[i] = pfx->addr.u8[i] & ipvx_bytemask[pfx->masklen % 8];
   // set trailing bytes to 0
-  memset(a+i+1, 0, famsize - i - 1);
+  memset(addr->addr.u8+i+1, 0, famsize - i - 1);
 }
 
 void ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
@@ -65,16 +70,14 @@ void ipvx_last_addr(const ipvx_prefix_t *pfx, ipvx_prefix_t *addr)
   uint8_t famsize = ipvx_family_size(pfx->family);
   addr->family = pfx->family;
   addr->masklen = famsize * 8;
-  uint8_t *a = (uint8_t*)&addr->addr;
-  const uint8_t *p = (const uint8_t*)&pfx->addr;
   unsigned i = pfx->masklen / 8;
-  memcpy(a, p, i);
+  memcpy(addr->addr.u8, pfx->addr.u8, i);
   if (i == famsize)
     return;
   // calculate partial byte
-  a[i] = p[i] | ipvx_not_bytemask[pfx->masklen % 8];
+  addr->addr.u8[i] = pfx->addr.u8[i] | ipvx_not_bytemask[pfx->masklen % 8];
   // set trailing bytes to 1
-  memset(a+i+1, 0xFF, famsize - i - 1);
+  memset(addr->addr.u8+i+1, 0xFF, famsize - i - 1);
 }
 
 // count leading zeros in a uint8_t
@@ -97,11 +100,6 @@ static inline int clz8(uint8_t x)
 
 int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 {
-#define chunk(type, offset, p) \
-  (((const type*)(&(p)->addr))[i])
-#define chunk_op(type, offset, a, op, b) \
-  (chunk(type, offset, a) op chunk(type, offset, b))
-
   // number of bits we still need to test
   uint8_t nbits = a->masklen < b->masklen ? a->masklen : b->masklen;
 
@@ -115,7 +113,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
       // efficient to use an uint64 test.
   case 16: case 15: case 14: case 13: case 12: case 11: case 10: case 9:
     if (nbits > 64) {
-      if (chunk_op(uint64_t, i, a, ==, b)) { i++; nbits -= 64; }
+      if (a->addr.u64[i] == b->addr.u64[i]) { i++; nbits -= 64; }
       else { nbits = 64; }
     }
     i = i << 1; // convert to offset of a uint32
@@ -125,13 +123,13 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
       // 32-bit tests are more efficient (and safe).
   case 16: case 15: case 14: case 13:
     if (nbits > 32) {
-      if (chunk_op(uint32_t, i, a, ==, b)) { i++; nbits -= 32; }
+      if (a->addr.u32[i] == b->addr.u32[i]) { i++; nbits -= 32; }
       else { nbits = 32; }
     }
     // fall through
   case 12: case 11: case 10: case 9:
     if (nbits > 32) {
-      if (chunk_op(uint32_t, i, a, ==, b)) { i++; nbits -= 32; }
+      if (a->addr.u32[i] == b->addr.u32[i]) { i++; nbits -= 32; }
       else { nbits = 32; }
     }
     // fall through
@@ -139,7 +137,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
   case 8: case 7: case 6: case 5:
     if (nbits > 32) {
-      if (chunk_op(uint32_t, i, a, ==, b)) { i++; nbits -= 32; }
+      if (a->addr.u32[i] == b->addr.u32[i]) { i++; nbits -= 32; }
       else { nbits = 32; }
     }
     i = i << 1; // convert to offset of a uint16
@@ -147,7 +145,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
   case 4: case 3:
     if (nbits > 16) {
-      if (chunk_op(uint16_t, i, a, ==, b)) { i++; nbits -= 16; }
+      if (a->addr.u16[i] == b->addr.u16[i]) { i++; nbits -= 16; }
       else { nbits = 16; }
     }
     i = i << 1; // convert to offset of a uint8
@@ -155,7 +153,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
   case 2:
     if (nbits > 8) {
-      if (chunk_op(uint8_t, i, a, ==, b)) { i++; nbits -= 8; }
+      if (a->addr.u8[i] == b->addr.u8[i]) { i++; nbits -= 8; }
       else { nbits = 8; }
     }
   }
@@ -164,7 +162,7 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
   if (nbits == 0)
     return i * 8;
   // find first unequal bit in the final partial byte
-  uint8_t unequal_bits = chunk_op(uint8_t, i, a, ^, b);
+  uint8_t unequal_bits = a->addr.u8[i] ^ b->addr.u8[i];
   unequal_bits |= ipvx_not_bytemask[nbits]; // bits past masklen are "unequal"
   return i * 8 + clz8(unequal_bits);
 }
@@ -172,13 +170,12 @@ int ipvx_equal_length(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 void ipvx_normalize(ipvx_prefix_t *pfx)
 {
   unsigned famsize = ipvx_family_size(pfx->family);
-  uint8_t *x = (uint8_t*)&pfx->addr;
   unsigned i = (pfx->masklen + 7) / 8;
   // clear trailing bytes
-  memset(x + i, 0, famsize - i);
+  memset(&pfx->addr.u8[i], 0, famsize - i);
   // if there's a partial byte, clear its trailing bits
   if (pfx->masklen % 8 != 0)
-    x[i-1] &= ipvx_bytemask[pfx->masklen % 8];
+    pfx->addr.u8[i-1] &= ipvx_bytemask[pfx->masklen % 8];
 }
 
 int ipvx_pton_addr(const char *str, ipvx_prefix_t *pfx)
@@ -235,8 +232,7 @@ const char *ipvx_ntop_pfx(const ipvx_prefix_t *pfx, char *buf)
 // (nth bit of a) == (nth bit of b)
 static inline int ipvx_bit_eq(const ipvx_prefix_t *a, const ipvx_prefix_t *b, int n)
 {
-  return !((((uint8_t*)&a->addr)[n/8] ^ ((uint8_t*)&b->addr)[n/8]) &
-      (0x80 >> (n%8)));
+  return !((a->addr.u8[n/8] ^ b->addr.u8[n/8]) & (0x80 >> (n%8)));
 }
 
 /**
@@ -255,15 +251,6 @@ static int split_range(const ipvx_prefix_t *pfx,
                        const ipvx_prefix_t *hi,
                        ipvx_prefix_list_t **pfx_list)
 {
-#if 0
-  char bufpfx[INET6_ADDRSTRLEN+4];
-  char buflo[INET6_ADDRSTRLEN+4];
-  char bufhi[INET6_ADDRSTRLEN+4];
-  fprintf(stderr, "%s(pfx=%s, lo=%s, hi=%s, ...)\n", __func__,
-      ipvx_ntop_pfx(pfx, bufpfx), ipvx_ntop_pfx(lo, buflo), ipvx_ntop_pfx(hi, bufhi));
-#endif
-  // assert(ipvx_pfx_contains(pfx, lo));
-  // assert(ipvx_pfx_contains(pfx, hi));
   ipvx_prefix_t subpfx, last;
 
   do {

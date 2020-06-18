@@ -24,6 +24,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/** @file
+ *
+ * @brief Utilities for IPv4 and IPv6 addresses
+ *
+ * @author Ken Keys
+ */
+
 #ifndef IPVX_UTILS_H
 #define IPVX_UTILS_H
 
@@ -42,6 +49,9 @@ typedef struct ipvx_prefix {
   union {
     struct in_addr v4;
     struct in6_addr v6;
+    uint8_t u8[1];
+    uint16_t u16[1];
+    uint32_t u32[1];
   } addr;
 } ipvx_prefix_t;
 
@@ -65,7 +75,7 @@ typedef struct ipvx_prefix_list {
  */
 static inline void ipvx_set_bit(ipvx_prefix_t *pfx, int n)
 {
-  ((uint8_t *)(&pfx->addr))[n/8] |= (0x80 >> (n % 8));
+  pfx->addr.u8[n/8] |= (0x80 >> (n % 8));
 }
 
 /**
@@ -76,7 +86,7 @@ static inline void ipvx_set_bit(ipvx_prefix_t *pfx, int n)
  */
 static inline void ipvx_clear_bit(ipvx_prefix_t *pfx, int n)
 {
-  ((uint8_t *)(&pfx->addr))[n/8] &= ~(0x80 >> (n % 8));
+  pfx->addr.u8[n/8] &= ~(0x80 >> (n % 8));
 }
 
 /**
@@ -87,7 +97,7 @@ static inline void ipvx_clear_bit(ipvx_prefix_t *pfx, int n)
  */
 static inline void ipvx_toggle_bit(ipvx_prefix_t *pfx, int n)
 {
-  ((uint8_t *)(&pfx->addr))[n/8] ^= (0x80 >> (n % 8));
+  pfx->addr.u8[n/8] ^= (0x80 >> (n % 8));
 }
 
 /**
@@ -193,8 +203,8 @@ static inline int ipvx_addr_eq(const ipvx_prefix_t *a, const ipvx_prefix_t *b)
 
 static inline int ipvx_pfx_contains(const ipvx_prefix_t *parent, const ipvx_prefix_t *child)
 {
-  const uint8_t *p = (const uint8_t*)&parent->addr;
-  const uint8_t *c = (const uint8_t*)&child->addr;
+  const uint8_t *p = parent->addr.u8;
+  const uint8_t *c = child->addr.u8;
   const uint16_t m = parent->masklen;
 
   return (parent->masklen <= child->masklen) &&
