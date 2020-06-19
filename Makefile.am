@@ -41,6 +41,8 @@ libcccommon_la_SOURCES = \
 	utils.h 	\
 	ip_utils.c 	\
 	ip_utils.h 	\
+	ipvx_utils.c 	\
+	ipvx_utils.h 	\
 	jsmn_utils.h 	\
 	jsmn_utils.c 	\
 	parse_cmd.c 	\
