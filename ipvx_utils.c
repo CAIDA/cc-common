@@ -255,16 +255,19 @@ static int ipvx_addr_is_last_in_pfx(const ipvx_prefix_t *addr, uint8_t masklen)
   return 1;
 }
 
-/**
+/*
  * Recursively compute network addresses to cover range lo-hi
  *
  * If lo (or hi) is NULL, it is treated as if it were the first (or last)
  * possible address of pfx.  This allows us to skip some calculations for first
  * and last addresses.
  *
- * Note: Worst case IPv4 scenario is when lo=0.0.0.1 and hi=255.255.255.254
- *       We then need 62 CIDR blocks to cover this interval, and 125 calls to
- *       split_range(). The maximum possible recursion depth is 32.
+ * Note: Worst case scenario for IPv4 is when lo=0.0.0.1 and hi=255.255.255.254.
+ *       We'll need 62 CIDR blocks to cover this interval, and 62 calls and
+ *       63 iterations of split_range(), with recursion depth 32.
+ *       For IPv6: lo=::1 and hi=ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe.
+ *       We'll need 254 CIDR blocks to cover this interval, and 254 calls and
+ *       255 iterations of split_range(), with recursion depth 128.
  */
 static int split_range(const ipvx_prefix_t *pfx,
                        const ipvx_prefix_t *lo,
