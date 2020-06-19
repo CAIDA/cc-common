@@ -336,18 +336,12 @@ int ipvx_range_to_prefix(const ipvx_prefix_t *lower, const ipvx_prefix_t *upper,
     upper = &upper_addr;
   } // else, upper already is its own last address
 
-  ipvx_prefix_t pfx;
-#if 0
-  // Set starting pfx to 0.0.0.0/0 or ::/0
-  memset(&pfx, 0, sizeof(pfx));
-  pfx.family = lower->family;
-#else
   // Set starting pfx to longest common prefix
+  ipvx_prefix_t pfx;
   pfx.family = lower->family;
   pfx.masklen = ipvx_equal_length(lower, upper);
   memcpy(&pfx.addr, &lower->addr, (pfx.masklen + 7) / 8);
   ipvx_normalize(&pfx);
-#endif
 
   *pfx_list = NULL;
   return split_range(&pfx, lower, upper, pfx_list);
