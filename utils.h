@@ -153,7 +153,7 @@ int timeval_subtract (struct timeval *result,
 /** Remove a newline from the given string
 * @param line              A pointer to the string to be chomped
 *
-* @note This function replaces the first occurance of '\n' with '\0'.
+* @note This function replaces the first occurance of '\\n' with '\\0'.
 * Therefore it is only useful for strings where the newline is at the end.
 * e.g. those returned by fgets (or similar)
 */
