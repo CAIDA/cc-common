@@ -12,7 +12,15 @@
  * "demo.c" so that it could be used as a standalone API.
  */
 
-static char copyright[] =
+#ifndef UNUSED
+#  if __GNUC__ >= 3
+#    define UNUSED  __attribute__((unused))
+#  else
+#    define UNUSED
+#  endif
+#endif
+
+UNUSED static char copyright[] =
 "This product includes software developed by the University of Michigan, Merit"
 "Network, Inc., and their contributors.";
 
