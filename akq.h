@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     akq_##name##_node_t *node;                                          \
     /* don't write too much data */                                     \
     if (q->size >= maxsize) {                                           \
-      do { pthread_yield(); } while (q->size >= maxsize * 3/4);         \
+      do { sched_yield(); } while (q->size >= maxsize * 3/4);           \
     }                                                                   \
     __sync_fetch_and_add(&q->size, 1); /* increment queue size */       \
     if ((node = __akq_##name##_node_create()) == NULL) {                \
